@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新版結帳頁 / 獨立分潤賣場 開通情境篩選工具</title>
+<style>
+:root{
+  --navy:#16284F;
+  --navy-dark:#0E1B38;
+  --navy-light:#2A3F6B;
+  --blue:#3D6BB3;
+  --blue-soft:#EAF0F8;
+  --blue-border:#BDD0EA;
+  --gray-bg:#F4F6F9;
+  --gray-line:#E2E6ED;
+  --gray-text:#6B7280;
+  --gray-soft:#9CA3AF;
+  --white:#FFFFFF;
+  --green:#2E7D52;
+  --green-soft:#E7F2EC;
+  --green-border:#BCDcC8;
+  --amber:#9A6A12;
+  --amber-soft:#FBF1DD;
+  --amber-border:#E9D6A8;
+  --red:#9B3535;
+  --red-soft:#F6EAEA;
+  --red-border:#E2C2C2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--gray-bg);color:var(--navy);line-height:1.6;-webkit-font-smoothing:antialiased}
+.topbar{background:var(--navy);color:var(--white);padding:16px 24px;display:flex;align-items:center;gap:14px}
+.topbar .logo{width:46px;height:46px;border-radius:10px;background:var(--white);padding:5px;flex:0 0 auto;object-fit:contain}
+.topbar .brand{font-size:20px;font-weight:400;letter-spacing:.5px;font-family:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.topbar .brand b{color:var(--white);font-weight:400}
+.topbar .sub{font-size:13px;color:#B9C4DA;margin-top:2px}
+.topbar .sub .date{color:#8FA0C2}
+.foot{max-width:880px;margin:0 auto;padding:18px 20px 40px;text-align:center;color:var(--gray-soft);font-size:12px}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 64px}
+.panel{background:var(--white);border:1px solid var(--gray-line);border-radius:12px;padding:22px 24px;margin-bottom:20px}
+.panel h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.panel .hint{font-size:13px;color:var(--gray-text);margin-bottom:16px}
+.step-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--navy);color:var(--white);font-size:13px;align-items:center;justify-content:center;font-weight:700}
+.field{margin-bottom:18px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px}
+.seg{padding:9px 18px;border:1.5px solid var(--gray-line);background:var(--white);color:var(--gray-text);border-radius:8px;font-size:14px;cursor:pointer;font-weight:500;transition:none}
+.seg:hover{border-color:var(--blue-border)}
+.seg.sel{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.scn{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid var(--gray-line);border-radius:10px;cursor:pointer;background:var(--white);margin-bottom:10px}
+.scn:last-child{margin-bottom:0}
+.scn:hover{border-color:var(--blue-border)}
+.scn.sel{border-color:var(--blue);background:var(--blue-soft)}
+.scn .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--gray-soft);flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:14px;font-weight:700}
+.scn.sel .box{background:var(--blue);border-color:var(--blue)}
+.scn .txt b{font-size:15px;color:var(--navy);font-weight:700}
+.scn .txt span{display:block;font-size:12px;color:var(--gray-text);margin-top:1px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.stat{border-radius:10px;padding:14px 16px;border:1px solid}
+.stat.ok{background:var(--green-soft);border-color:var(--green-border)}
+.stat.dev{background:var(--amber-soft);border-color:var(--amber-border)}
+.stat.no{background:var(--red-soft);border-color:var(--red-border)}
+.stat .n{font-size:26px;font-weight:700;line-height:1}
+.stat.ok .n{color:var(--green)}
+.stat.dev .n{color:var(--amber)}
+.stat.no .n{color:var(--red)}
+.stat .l{font-size:12px;color:var(--gray-text);margin-top:5px}
+.stat{cursor:pointer}
+.stat.ok.active{box-shadow:0 0 0 2px var(--green)}
+.stat.dev.active{box-shadow:0 0 0 2px var(--amber)}
+.stat.no.active{box-shadow:0 0 0 2px var(--red)}
+.filterhint{font-size:12px;color:var(--gray-soft);margin:-6px 0 16px}
+.searchbox{width:100%;padding:11px 14px;border:1.5px solid var(--gray-line);border-radius:8px;font-size:14px;color:var(--navy);background:var(--white);margin-bottom:16px}
+.searchbox:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.sec-title{font-size:13px;font-weight:700;margin:18px 0 8px;display:flex;align-items:center;gap:7px}
+.sec-title .dot{width:9px;height:9px;border-radius:50%}
+.dot.ok{background:var(--green)}.dot.dev{background:var(--amber)}.dot.no{background:var(--red)}
+.group{margin-bottom:6px}
+.group-head{font-size:13px;font-weight:700;color:var(--navy);background:var(--gray-bg);padding:7px 12px;border-radius:6px;margin-bottom:4px}
+.group-head .rg{font-weight:500;color:var(--gray-text);font-size:12px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid var(--gray-line)}
+.item:last-child{border-bottom:none}
+.item .m{font-size:14px;color:var(--navy)}
+.badges{display:flex;gap:6px;flex:0 0 auto}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:6px;white-space:nowrap;font-weight:500}
+.badge.yes{background:var(--green-soft);color:var(--green)}
+.badge.dev{background:var(--amber-soft);color:var(--amber)}
+.badge.no{background:var(--red-soft);color:var(--red)}
+.badge .k{font-size:11px;opacity:.8;font-weight:400}
+.badge .nt{font-size:10px;opacity:.75;font-weight:400}
+.empty{text-align:center;color:var(--gray-soft);font-size:14px;padding:36px 12px}
+.empty .big{font-size:15px;color:var(--gray-text);margin-bottom:4px}
+.legend{font-size:12px;color:var(--gray-text);margin-top:14px;display:flex;flex-wrap:wrap;gap:14px}
+.legend span{display:flex;align-items:center;gap:5px}
+details{margin-top:14px}
+summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--gray-text);padding:8px 0;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ ";color:var(--gray-soft)}
+details[open] summary::before{content:"▾ "}
+@media(max-width:560px){.stats{grid-template-columns:1fr}.item{flex-direction:column;align-items:flex-start;gap:6px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img class="logo" src="data:image/jpeg;base64,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" alt="SHOPLINE">
+  <div>
+    <div class="brand">SHOP<b>LINE</b></div>
+    <div class="sub">新版結帳頁 / 獨立分潤賣場 — 開通情境篩選工具　<span class="date">·　更新日期 2026/06/17</span></div>
+  </div>
+</div>
+<div class="wrap">
+
+  <div class="panel">
+    <h2><span class="step-num">1</span>選擇開通情境</h2>
+    <p class="hint">先選地區與要開通的情境，下方會即時篩出符合的可開通項目。兩個情境同時勾選時，會篩出「兩者皆支援」的項目。</p>
+
+    <div class="field">
+      <div class="field-label">地區</div>
+      <div class="btn-row" id="regionRow">
+        <button class="seg sel" data-v="TW">台灣 TWD</button>
+        <button class="seg" data-v="HK">香港 HKD</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">類別</div>
+      <div class="btn-row" id="catRow">
+        <button class="seg sel" data-v="all">全部</button>
+        <button class="seg" data-v="pay">金流</button>
+        <button class="seg" data-v="logi">物流</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">開通情境（可單選或同時勾選）</div>
+      <div class="scn sel" id="scnA" data-k="a">
+        <div class="box">✓</div>
+        <div class="txt"><b>新版結帳頁</b><span>checkout revamp — cart / checkout page</span></div>
+      </div>
+      <div class="scn" id="scnB" data-k="b">
+        <div class="box">✓</div>
+        <div class="txt"><b>獨立分潤賣場</b><span>independent profit-sharing store</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="step-num">2</span>符合的開通項目</h2>
+    <p class="hint" id="scopeHint"></p>
+
+    <div class="stats" id="stats">
+      <div class="stat ok" id="stOk" data-st="ok"><div class="n" id="cOk">0</div><div class="l">可開通（已支援）</div></div>
+      <div class="stat dev" id="stDev" data-st="dev"><div class="n" id="cDev">0</div><div class="l">開發中（即將支援）</div></div>
+      <div class="stat no" id="stNo" data-st="no"><div class="n" id="cNo">0</div><div class="l">不支援</div></div>
+    </div>
+
+    <div class="filterhint">點上方色塊可只看該狀態的項目，再點一次取消篩選</div>
+
+    <input class="searchbox" id="q" type="text" placeholder="搜尋方式或服務商…（例：Apple Pay、7-11、順豐）">
+
+    <div id="result"></div>
+
+    <div class="legend">
+      <span><span class="badge yes">支援</span></span>
+      <span><span class="badge dev">開發中</span></span>
+      <span><span class="badge no">不支援</span></span>
+    </div>
+  </div>
+
+</div>
+<div class="foot">製作者：Product Success 整理製作</div>
+<script>
+const DATA=[
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"信用卡一次付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"信用卡分期",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"ATM 虛擬帳號",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"Atome",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"Chailease BNPL 中租",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"UnionPay 銀聯卡",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"Apple Pay",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"指定信用卡類別",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"AFTEE",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"SHOPLINE Payments",m:"街口支付",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"自訂付款方法",m:"自訂付款方法",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"貨到付款",m:"貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"銀行轉帳 / ATM",m:"銀行轉帳 / ATM",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"LINE Pay",m:"LINE Pay",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"黑貓",m:"黑貓貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"全家 C2C",m:"全家 C2C 貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"全家 B2C",m:"全家 B2C 貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"7-11 B2C",m:"7-11 B2C 貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"7-11 C2C",m:"7-11 C2C 貨到付款",a:"yes",b:"yes"},
+{r:"TW",c:"pay",g:"PayPal Express",m:"PayPal Express",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"pay",g:"永豐收單",m:"信用卡",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"台新收單",m:"信用卡",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"Tappay - 永豐",m:"信用卡（永豐收單）",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"pay",g:"Tappay - 台新",m:"信用卡（台新收單）",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"pay",g:"Tappay - 中信 / NCCC",m:"信用卡（中信 / NCCC 收單）",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"pay",g:"Tappay - 玉山",m:"信用卡（玉山收單）",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"GMO",m:"信用卡",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"ezShip",m:"ezShip 貨到付款",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"Newebpay v2 / 藍新",m:"信用卡一次付款",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"Newebpay v2 / 藍新",m:"信用卡分期",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"Newebpay v2 / 藍新",m:"超商代碼付款",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"Newebpay v2 / 藍新",m:"ATM 虛擬帳號",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"NewebPay / 藍新",m:"信用卡一次付款",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"NewebPay / 藍新",m:"信用卡分期",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"NewebPay / 藍新",m:"LINE Pay",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"NewebPay / 藍新",m:"Apple Pay",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"信用卡一次付款",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"信用卡分期",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"信用卡定期定額",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"網路 ATM 匯款",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"超商代碼",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"超商條碼",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"綠界 / Ecpay",m:"ATM 虛擬帳號",a:"yes",b:"no"},
+{r:"TW",c:"pay",g:"歐付寶 / O'Pay(Allpay)",m:"信用卡一次付款",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"歐付寶 / O'Pay(Allpay)",m:"網路 ATM 匯款",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"歐付寶 / O'Pay(Allpay)",m:"超商條碼付款",a:"no",b:"no"},
+{r:"TW",c:"pay",g:"歐付寶 / O'Pay(Allpay)",m:"ATM 虛擬帳號",a:"no",b:"no"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"信用卡（含銀聯卡）",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"Specific Credit Card Types",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"Atome",a:"no",b:"no"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"Alipay (HK)",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"Apple Pay",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"Google Pay",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"指定信用卡類別",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"FPS",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"SHOPLINE Payments",m:"WeChat Pay",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"Stripe",m:"Credit Card via Stripe",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"Stripe",m:"Apple Pay via Stripe",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"Stripe",m:"Google Pay via Stripe",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"AsiaPay",m:"信用卡",a:"dev",b:"no"},
+{r:"HK",c:"pay",g:"AsiaPay",m:"銀聯",a:"dev",b:"no"},
+{r:"HK",c:"pay",g:"AsiaPay",m:"支付寶 (中國)",a:"dev",b:"no"},
+{r:"HK",c:"pay",g:"AsiaPay",m:"支付寶 (香港)",a:"dev",b:"no"},
+{r:"HK",c:"pay",g:"PayPal  Express",m:"PayPal & Credit Card",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"PayPal  CN",m:"PayPal / Credit Card（NEW）",a:"no",b:"no"},
+{r:"HK",c:"pay",g:"Octopus 八達通",m:"Octopus 八達通",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"FPS",m:"FPS",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"Payme",m:"Payme",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"自訂",m:"自訂",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"貨到付款",m:"貨到付款",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"銀行轉帳 / ATM",m:"銀行轉帳 / ATM",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"自訂付款方法",m:"自訂付款方法",a:"yes",b:"yes"},
+{r:"HK",c:"pay",g:"貨到付款",m:"貨到付款",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"銀行轉帳 / ATM",m:"銀行轉帳 / ATM",a:"yes",b:"no"},
+{r:"HK",c:"pay",g:"Alipay (HK)",m:"Alipay (HK)",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"Alipay (China)",m:"Alipay (China)",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"pay",g:"Asiabill",m:"Asiabill",a:"no",b:"no"},
+{r:"TW",c:"logi",g:"宅配",m:"新竹物流 - 冷凍/冷藏/常溫",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"宅配",m:"黑貓宅配 - 常溫/冷藏/冷凍(取貨不付款）",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"宅配",m:"黑貓宅配 - 常溫/冷藏/冷凍(貨到付款）",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"宅配",m:"7-11跨境宅配",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"logi",g:"超商取貨",m:"7-11跨境門市自取-取貨不付款",a:"dev",b:"no",an:"7/2 上線"},
+{r:"TW",c:"logi",g:"超商取貨",m:"黑貓快速到店 - 冷凍/冷藏/常溫 (C/B/A)",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"黑貓宅到店 - 冷藏/冷凍/常溫 / （oneship出貨，純地圖）",a:"yes",b:"no"},
+{r:"TW",c:"logi",g:"超商取貨",m:"7-11 取貨付款 (B2C) / 7-11 取貨不付款 (B2C)",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"7-11 取貨付款 (C2C) / 7-11 取貨不付款 (C2C)",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"全家 取貨付款 (B2C) / 全家 取貨不付款 (B2C)",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"全家 取貨付款 (C2C) / 全家 取貨不付款 (C2C)",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"全家 冷凍 取貨付款 / 全家 冷凍 取貨不付款",a:"yes",b:"yes"},
+{r:"TW",c:"logi",g:"超商取貨",m:"7-11/全家 取貨 (無串接)",a:"no",b:"no"},
+{r:"TW",c:"logi",g:"超商取貨",m:"7-11/全家 超商取貨 (純地圖)",a:"yes",b:"no"},
+{r:"TW",c:"logi",g:"超商取貨",m:"ezShip (台灣便利配)：有整合一些台灣的物流，如：萊爾富、OK、全家",a:"no",b:"no"},
+{r:"TW/HK",c:"logi",g:"自訂",m:"自訂",a:"yes",b:"yes"},
+{r:"TW/HK",c:"logi",g:"門市自取",m:"門市自取",a:"yes",b:"yes"},
+{r:"HK",c:"logi",g:"速遞",m:"順豐速運 (串接)",a:"dev",b:"no",an:"7/2 上線"},
+{r:"HK",c:"logi",g:"自取",m:"Alfred 智能櫃",a:"no",b:"no"},
+{r:"HK",c:"logi",g:"自取",m:"順豐速運-順豐智能櫃/順豐站取件/ / 順豐營業點取件/順豐服務點取件",a:"yes",b:"no"}
+];
+const KLABEL={a:"新版結帳頁",b:"獨立分潤賣場"};
+const BADGEK={a:"結帳頁",b:"獨立分潤賣場"};
+const VLABEL={yes:"支援",dev:"開發中",no:"不支援"};
+let region="TW",cat="all",scn={a:true,b:false},q="",statusFilter=null;
+
+function matchRegion(r){return r===region||r==="TW/HK";}
+function selectedKeys(){return ["a","b"].filter(k=>scn[k]);}
+function bucket(row,keys){
+  const vals=keys.map(k=>row[k]);
+  if(vals.every(v=>v==="yes"))return "ok";
+  if(vals.some(v=>v==="no"))return "no";
+  return "dev";
+}
+
+function render(){
+  const keys=selectedKeys();
+  const res=document.getElementById("result");
+  const scopeTxt=(region==="TW"?"台灣 TWD":"香港 HKD")
+    +" · "+(cat==="all"?"金流＋物流":cat==="pay"?"金流":"物流")
+    +" · 開通情境："+(keys.length?keys.map(k=>KLABEL[k]).join(" ＋ "):"未選");
+  document.getElementById("scopeHint").textContent=scopeTxt;
+
+  if(keys.length===0){
+    document.getElementById("cOk").textContent="0";
+    document.getElementById("cDev").textContent="0";
+    document.getElementById("cNo").textContent="0";
+    res.innerHTML='<div class="empty"><div class="big">請先在上方勾選至少一個開通情境</div>勾選後會列出符合的可開通項目</div>';
+    return;
+  }
+
+  const ql=q.trim().toLowerCase();
+  const base=DATA.filter(d=>matchRegion(d.r)&&(cat==="all"||d.c===cat)
+    &&(ql===""||d.m.toLowerCase().includes(ql)||d.g.toLowerCase().includes(ql)));
+  const tagged=base.map(d=>({...d,bk:bucket(d,keys)}));
+
+  const okRows=tagged.filter(d=>d.bk==="ok");
+  const devRows=tagged.filter(d=>d.bk==="dev");
+  const noRows=tagged.filter(d=>d.bk==="no");
+  document.getElementById("cOk").textContent=okRows.length;
+  document.getElementById("cDev").textContent=devRows.length;
+  document.getElementById("cNo").textContent=noRows.length;
+
+  const show=st=>!statusFilter||statusFilter===st;
+  let html="";
+  if(show("ok"))html+=section(okRows,"ok","可開通項目（已支援）",keys);
+  if(show("dev"))html+=section(devRows,"dev","開發中（即將支援）",keys);
+  if(show("no"))html+=section(noRows,"no","不支援的項目",keys);
+  if(html==="")
+    html='<div class="empty"><div class="big">沒有符合的項目</div>試著調整地區、類別、狀態篩選或搜尋關鍵字</div>';
+  res.innerHTML=html;
+}
+
+function section(rows,cls,title,keys){
+  if(!rows.length)return "";
+  let html="";
+  if(title)html+='<div class="sec-title"><span class="dot '+cls+'"></span>'+title+'（'+rows.length+'）</div>';
+  let lastG=null;
+  rows.forEach(d=>{
+    if(d.g!==lastG){
+      html+='<div class="group-head">'+esc(d.g)+(d.r==="TW/HK"?' <span class="rg">· TW / HK 共用</span>':'')+'</div>';
+      lastG=d.g;
+    }
+    let badges=keys.map(k=>{const note=d[k+"n"];return '<span class="badge '+d[k]+'"><span class="k">'+BADGEK[k]+'</span>'+VLABEL[d[k]]+(note?' <span class="nt">'+note+'</span>':'')+'</span>';}).join("");
+    html+='<div class="item"><span class="m">'+esc(d.m)+'</span><span class="badges">'+badges+'</span></div>';
+  });
+  return '<div class="group">'+html+'</div>';
+}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+document.getElementById("regionRow").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#regionRow .seg").forEach(x=>x.classList.remove("sel"));
+  b.classList.add("sel");region=b.dataset.v;render();
+});
+document.getElementById("catRow").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#catRow .seg").forEach(x=>x.classList.remove("sel"));
+  b.classList.add("sel");cat=b.dataset.v;render();
+});
+["scnA","scnB"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("click",()=>{
+    const k=el.dataset.k;scn[k]=!scn[k];
+    el.classList.toggle("sel",scn[k]);render();
+  });
+});
+document.getElementById("stats").addEventListener("click",e=>{
+  const card=e.target.closest(".stat");if(!card)return;
+  const st=card.dataset.st;
+  statusFilter=(statusFilter===st)?null:st;
+  ["stOk","stDev","stNo"].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.toggle("active",statusFilter===el.dataset.st);
+  });
+  render();
+});
+document.getElementById("q").addEventListener("input",e=>{q=e.target.value;render();});
+render();
+</script>
+</body>
+</html>
