@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新版購物車開通檢查小工具</title>
+<style>
+:root {
+  --navy: #16284F; --navy-dark: #0E1B38; --blue: #3D6BB3; --blue-soft: #EAF0F8; --blue-border: #BDD0EA;
+  --gray-bg: #F4F6F9; --gray-line: #E2E6ED; --gray-text: #6B7280; --gray-soft: #9CA3AF; --white: #FFFFFF;
+  --green: #2E7D52; --green-bg: #E6F2EB; --green-border: #A6D4BC;
+  --red: #C0392B; --red-bg: #FBEAE8; --red-border: #E8B4AE;
+  --amber-bg: #FBF3E2; --amber-border: #D9B25F; --amber-text: #6B4E16;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang TC", sans-serif; background: var(--gray-bg); color: var(--navy); line-height: 1.5; min-height: 100vh; padding: 0 0 3rem; }
+.topbar { background: var(--navy); padding: 16px 24px; display: flex; align-items: center; gap: 14px; }
+.logo-badge { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logo-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.topbar-text { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; }
+.logo-wordmark { font-size: 18px; font-weight: 400; color: #fff; letter-spacing: 2px; line-height: 1; }
+.logo-sub { color: #9DB0D0; font-size: 12px; line-height: 1.2; margin: 0; }
+.container { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 0; }
+.page-title { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: var(--gray-text); margin-bottom: 2rem; }
+.step-indicator { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; }
+.step-dot { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--gray-soft); }
+.step-dot.active { color: var(--navy); font-weight: 600; }
+.step-dot.done { color: var(--green); }
+.sdot { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--gray-line); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--gray-soft); background: var(--white); flex-shrink: 0; }
+.step-dot.active .sdot { background: var(--navy); border-color: var(--navy); color: #fff; }
+.step-dot.done .sdot { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.step-line { flex: 1; height: 1.5px; background: var(--gray-line); }
+.prog-bar { height: 4px; background: var(--gray-line); border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.35s ease; }
+.card { background: var(--white); border: 1px solid var(--gray-line); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(22,40,79,0.04); }
+.field-block { margin-bottom: 1.4rem; }
+.field-block:last-child { margin-bottom: 0; }
+.field-label { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: block; }
+.err { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+.err.show { display: block; }
+.std-input { width: 100%; background: var(--white); border: 1.5px solid var(--gray-line); border-radius: 9px; padding: 10px 13px; font-size: 14px; color: var(--navy); font-family: inherit; transition: border-color 0.15s; }
+.std-input::placeholder { color: var(--gray-soft); }
+.std-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(61,107,179,0.1); }
+.region-toggle { display: flex; gap: 10px; margin-top: 6px; }
+.region-btn { flex: 0 0 130px; padding: 12px 0; font-size: 15px; font-weight: 600; border-radius: 9px; cursor: pointer; font-family: inherit; border: 2px solid var(--gray-line); background: var(--white); color: var(--gray-text); transition: all 0.15s; }
+.region-btn:hover { border-color: var(--blue-border); }
+.region-btn.sel { background: var(--navy); border-color: var(--navy); color: #fff; }
+.handle-row { display: flex; gap: 8px; margin-top: 6px; }
+.handle-row .std-input { flex: 1; }
+.btn-add { padding: 10px 16px; font-size: 13px; font-weight: 600; white-space: nowrap; background: var(--white); border: 1.5px solid var(--gray-line); border-radius: 9px; cursor: pointer; color: var(--navy); font-family: inherit; transition: all 0.15s; }
+.btn-add:hover { border-color: var(--navy); background: var(--gray-bg); }
+.tags-wrap { display: flex; flex-wrap: wrap; min-height: 4px; margin-top: 10px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; background: var(--blue-soft); border: 1px solid var(--blue-border); border-radius: 20px; padding: 4px 8px 4px 13px; font-size: 13px; color: var(--navy); margin: 3px; font-weight: 500; }
+.tag-x { background: rgba(22,40,79,0.08); border: none; cursor: pointer; color: var(--navy); padding: 0; font-size: 9px; line-height: 1; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.12s; }
+.tag-x:hover { color: #fff; background: var(--red); }
+.cl-h1 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+.notice-box { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 10px; padding: 13px 16px; margin-bottom: 20px; font-size: 14px; color: var(--amber-text); line-height: 1.7; }
+.g-title { font-size: 16px; font-weight: 700; color: var(--navy); margin: 24px 0 10px; padding-bottom: 7px; border-bottom: 2px solid var(--navy); }
+.g-title:first-child { margin-top: 0; }
+.check-item { padding: 16px 0; border-bottom: 1px solid var(--gray-line); }
+.check-item:last-child { border-bottom: none; }
+.check-q { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; line-height: 1.55; }
+.check-tag { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 2px 8px; margin-bottom: 10px; }
+.tag-block { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-dev { background: var(--amber-bg); color: var(--amber-text); border: 1px solid var(--amber-border); }
+.tag-note { background: var(--blue-soft); color: var(--blue); border: 1px solid var(--blue-border); }
+.handle-check-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; flex-wrap: wrap; }
+.handle-check-row + .handle-check-row { border-top: 1px dashed var(--gray-line); }
+.handle-name { font-size: 13px; font-weight: 700; color: var(--navy); background: var(--blue-soft); border: 1px solid var(--blue-border); border-radius: 7px; padding: 4px 10px; }
+.handle-link { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--blue); text-decoration: none; white-space: nowrap; }
+.handle-link:hover { text-decoration: underline; }
+.handle-spacer { flex: 1; }
+.choice-row { display: flex; gap: 6px; }
+.choice-btn { padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--gray-line); background: var(--white); color: var(--gray-text); cursor: pointer; font-family: inherit; transition: all 0.12s; white-space: nowrap; }
+.choice-btn:hover { border-color: var(--gray-soft); }
+.choice-btn.sel-no { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.choice-btn.sel-yes { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.item-err { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+.item-err.show { display: block; }
+.summary-row { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--gray-line); font-size: 13px; }
+.summary-row:last-child { border-bottom: none; }
+.s-lbl { color: var(--gray-text); flex-shrink: 0; min-width: 90px; font-weight: 500; }
+.s-val { color: var(--navy); font-weight: 600; }
+.reminder-box { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 10px; padding: 15px 17px; margin-top: 12px; font-size: 14px; color: var(--amber-text); line-height: 1.9; }
+.btn-row { display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end; }
+.btn-primary { background: var(--navy); border: 1.5px solid var(--navy); color: #fff; border-radius: 9px; padding: 11px 26px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-primary:hover { background: var(--navy-dark); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: var(--white); border: 1.5px solid var(--gray-line); color: var(--gray-text); border-radius: 9px; padding: 11px 26px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
+.step-box { background: var(--white); border: 1px solid var(--gray-line); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+.step-box h3 { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+.step-list { list-style: none; counter-reset: steps; }
+.step-list > li { counter-increment: steps; display: flex; gap: 11px; margin-bottom: 14px; font-size: 14px; color: var(--navy); line-height: 1.65; }
+.step-list > li:last-child { margin-bottom: 0; }
+.step-list > li::before { content: counter(steps); background: var(--navy); border: 1px solid var(--navy); color: #fff; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step-list a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+.key-list { list-style: none; margin: 7px 0 0 4px; }
+.key-list li { font-size: 13px; color: var(--navy); padding: 3px 0; }
+.key-list li::before { content: "—"; margin-right: 7px; color: var(--gray-soft); }
+.done-banner { text-align: center; padding: 1.75rem 1.25rem 1.25rem; }
+.done-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--green-bg); border: 2px solid var(--green); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px; }
+.done-icon.warn { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+.done-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.done-sub { font-size: 13px; color: var(--gray-text); }
+.done-slogan { margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--amber-text); background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 8px; padding: 9px 14px; display: inline-block; }
+.center-reset { text-align: center; margin-top: 1rem; }
+.blocked-box { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.blocked-box h3 { font-size: 16px; font-weight: 700; color: var(--red); margin-bottom: 12px; }
+.dev-box { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.dev-box h3 { font-size: 16px; font-weight: 700; color: var(--amber-text); margin-bottom: 12px; }
+.note-box { background: var(--blue-soft); border: 1px solid var(--blue-border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.note-box h3 { font-size: 16px; font-weight: 700; color: var(--blue); margin-bottom: 12px; }
+.result-handle { padding: 10px 0; border-bottom: 1px dashed var(--red-border); }
+.result-handle:last-child { border-bottom: none; }
+.result-handle-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.result-reasons { font-size: 13px; line-height: 1.7; }
+.pass-tag { display: inline-block; font-size: 13px; font-weight: 700; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 7px; padding: 3px 11px; margin: 3px 4px 3px 0; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo-badge">
+      <img src="data:image/png;base64,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" alt="SHOPLINE" width="40" height="40">
+    </div>
+    <div class="topbar-text">
+      <span class="logo-wordmark">SHOPLINE</span>
+      <div class="logo-sub">新版購物車 P1 / 新版結帳頁 P2 開通檢查小工具　·　更新日期 2026/06/17</div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="page-title">新版購物車 P1 / 新版結帳頁 P2 開通檢查小工具</div>
+    <div class="page-sub">請逐步填寫並確認所有項目後送出</div>
+    <div class="step-indicator" id="stepInd"></div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:33%"></div></div>
+
+    <div id="p1">
+      <div class="card">
+
+        <div class="field-block">
+          <label class="field-label">你要檢查的店家</label>
+          <div class="region-toggle">
+            <button id="btnTWD" class="region-btn" onclick="selectRegion('TWD')">🇹🇼 TWD</button>
+            <button id="btnHKD" class="region-btn" onclick="selectRegion('HKD')">🇭🇰 HKD</button>
+          </div>
+          <div class="err" id="regionErr">請選擇店家</div>
+        </div>
+        <div class="field-block">
+          <label class="field-label">請輸入要檢查的 Handle</label>
+          <div class="handle-row">
+            <input id="handleInput" type="text" maxlength="200" placeholder="多 Handle 輸入請用空白格分開" class="std-input" onkeydown="hKey(event)" oninput="sanitize(this)">
+            <button class="btn-add" onclick="addHandles()">+ 新增</button>
+          </div>
+          <div class="tags-wrap" id="tagsWrap"></div>
+          <div class="err" id="handleErr">請至少輸入一個 Handle</div>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn-primary" onclick="goStep2()">下一步 →</button></div>
+    </div>
+
+    <div id="p2" style="display:none">
+      <div class="card">
+        <div class="cl-h1" id="clH1"></div>
+        <div class="notice-box">
+          <strong>⚠️ 請「務必」前往各店家後台逐一確認。</strong><br>
+          每個 Handle 的每一項都是必選，請逐家逐項確認。若某個 Handle 有功能限制，僅該 Handle 受影響，其餘符合的可正常開通。有任何問題請到 <strong>#biz-checkout-revamp</strong> 確認目前功能限制。
+        </div>
+        <div id="clItems"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(1)">← 上一步</button>
+        <button class="btn-primary" onclick="goStep3()">下一步 →</button>
+      </div>
+    </div>
+
+    <div id="p3" style="display:none">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px">請確認以下內容，並點選「確認送出」繼續開通流程檢查</div>
+        <div id="sumContent"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:10px">以下是你作答的紀錄</div>
+        <div id="sumRecord" style="font-size:13px;line-height:1.8;color:var(--navy)"></div>
+      </div>
+      <div class="reminder-box">
+        <strong>🔔 溫馨提醒</strong><br>
+        請再次確認作答內容是否正確，因為不會有人協助你第二次檢查。<br>
+        如果有不確定的，請 Slack Jeff 來確認怎麼檢查。
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(2)">← 上一步</button>
+        <button id="btnSubmit" class="btn-primary" onclick="submitForm()">✓ 確認送出</button>
+      </div>
+    </div>
+
+    <div id="p4" style="display:none">
+      <div class="card">
+        <div class="done-banner">
+          <div class="done-icon warn">!</div>
+          <div class="done-title">檢查完成，尚未開通</div>
+          <div class="done-sub">現在請依照以下步驟操作</div>
+          <div class="done-slogan">⚠️ 此網頁請勿關閉，開通流程會用到</div>
+        </div>
+      </div>
+      <div id="blockedSection"></div>
+      <div id="devSection"></div>
+      <div id="noteSection"></div>
+      <div id="passSection"></div>
+      <div class="center-reset"><button class="btn-secondary" onclick="resetAll()">↺ 重新填寫</button></div>
+    </div>
+  </div>
+
+<script>
+const BASE = 'https://admin.shoplineapp.com/admin/';
+const STEPS_TWD = `<div class="step-box"><h3>🇹🇼 TWD 開通步驟</h3><ol class="step-list">
+  <li><div>請填寫兩個表單，分別是：<br>
+    <a href="https://docs.google.com/spreadsheets/d/1bVaWCKV4gAuQcvtDLw7p8AudAv0B4UA6DnE41T7mJ9g/edit?gid=1733742030#gid=1733742030" target="_blank">表單 1</a>、
+    <a href="https://docs.google.com/spreadsheets/d/1bVaWCKV4gAuQcvtDLw7p8AudAv0B4UA6DnE41T7mJ9g/edit?gid=565057746#gid=565057746" target="_blank">表單 2</a></div></li>
+  <li><div>請到 <strong>#features-beta_application</strong> 發文開通</div></li>
+  <li><div>Feature Key 名稱：<ul class="key-list"><li>P1 cart page revamp</li><li>P2 checkout page revamp</li></ul></div></li>
+  <li><div>Feature Key PIC(s) 請選擇：<strong>Yuwan Chang (PM), Jeff Chou (PS)</strong></div></li>
+  <li><div>發文完成後，並截圖此網頁（截圖要包含 Handle），貼在 Threads 下面</div></li>
+  <li><div>恭喜你完成 🥳</div></li></ol></div>`;
+const STEPS_HKD = `<div class="step-box"><h3>🇭🇰 HKD 開通步驟</h3><ol class="step-list">
+  <li><div>請填寫兩個表單，分別是：<br>
+    <a href="https://docs.google.com/spreadsheets/d/1bVaWCKV4gAuQcvtDLw7p8AudAv0B4UA6DnE41T7mJ9g/edit?gid=1733742030#gid=1733742030" target="_blank">表單 1</a>、
+    <a href="https://docs.google.com/spreadsheets/d/1bVaWCKV4gAuQcvtDLw7p8AudAv0B4UA6DnE41T7mJ9g/edit?gid=565057746#gid=565057746" target="_blank">表單 2</a></div></li>
+  <li><div>請到 <strong>#features-beta_application</strong> 發文開通</div></li>
+  <li><div>Feature Key 名稱：<ul class="key-list"><li>P1 cart page revamp</li><li>P2 checkout page revamp</li></ul></div></li>
+  <li><div>Feature Key PIC(s) 請選擇：<strong>Yuwan Chang (PM), Jeff Chou (PS)</strong></div></li>
+  <li><div>發文完成後，並截圖此網頁（截圖要包含 Handle），貼在 Threads 下面</div></li>
+  <li><div>恭喜你完成 🥳</div></li></ol></div>`;
+
+// type: 'block' = 純X永久不支援(擋), 'dev' = 開發中7/2上線(擋,理由不同), 'note' = Layout Engine(不擋,提醒)
+const CHECKS = {
+  TWD: { h1: '🇹🇼 TWD 商店檢查清單', groups: [
+    { title: 'EC 後台檢查', items: [
+      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note' },
+    ]},
+    { title: '金流限制', items: [
+      { label: '藍新的 LINE Pay', q: '「藍新的 LINE Pay」是否有使用？', sub: 'payments', type: 'block' },
+      { label: '藍新的 Apple Pay', q: '「藍新的 Apple Pay」是否有使用？', sub: 'payments', type: 'block' },
+      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: 'Tappay-中信/NCCC', q: '「Tappay-中信/NCCC」是否有使用？', sub: 'payments', type: 'dev' },
+    ]},
+    { title: '物流限制', items: [
+      { label: '7-11 跨境', q: '「7-11 跨境」是否有使用？', sub: 'delivery_options', type: 'dev' },
+    ]},
+  ]},
+  HKD: { h1: '🇭🇰 HKD 商店檢查清單', groups: [
+    { title: 'EC 後台檢查', items: [
+      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note' },
+    ]},
+    { title: '金流限制', items: [
+      { label: 'AsiaPay', q: '「AsiaPay」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: 'Alipay (China)', q: '「Alipay (China)」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: 'Alipay (HK)', q: '「Alipay (HK)」是否有使用？', sub: 'payments', type: 'dev' },
+    ]},
+    { title: '物流限制', items: [
+      { label: '順豐速運（串接）', q: '「順豐速運（串接）」是否有使用？', sub: 'delivery_options', type: 'dev' },
+    ]},
+  ]},
+};
+
+const TAG_LABEL = { block: '不支援｜擋', dev: '開發中 7/2 上線', note: '需自行檢查' };
+const TAG_CLASS = { block: 'tag-block', dev: 'tag-dev', note: 'tag-note' };
+
+let state = { region: '', handles: [], answers: {} };
+function akey(gi, ii, h) { return gi + '_' + ii + '_' + h; }
+
+function renderSteps(cur) {
+  const steps = ['基本資訊', '功能確認', '確認送出'];
+  const ind = document.getElementById('stepInd');
+  ind.innerHTML = '';
+  steps.forEach((s, i) => {
+    const n = i + 1;
+    const cls = n < cur ? 'done' : n === cur ? 'active' : '';
+    const icon = n < cur ? '✓' : n;
+    ind.innerHTML += `<div class="step-dot ${cls}"><div class="sdot">${icon}</div><span>${s}</span></div>`;
+    if (i < steps.length - 1) ind.innerHTML += '<div class="step-line"></div>';
+  });
+  document.getElementById('progFill').style.width = (cur / 3 * 100) + '%';
+}
+
+function selectRegion(r) {
+  state.region = r;
+  document.getElementById('btnTWD').classList.toggle('sel', r === 'TWD');
+  document.getElementById('btnHKD').classList.toggle('sel', r === 'HKD');
+  document.getElementById('regionErr').classList.remove('show');
+}
+function sanitize(el) { el.value = el.value.replace(/[^a-zA-Z0-9\-_ ]/g, ''); }
+function parseHandles(raw) { return raw.split(/\s+/).map(s => s.trim().slice(0, 20)).filter(s => /^[a-zA-Z0-9\-_]+$/.test(s)); }
+function renderTags() {
+  document.getElementById('tagsWrap').innerHTML = state.handles.map((h, i) =>
+    `<span class="tag">${h}<button class="tag-x" onclick="removeHandle(${i})">✕</button></span>`).join('');
+}
+function addHandles() {
+  const inp = document.getElementById('handleInput');
+  parseHandles(inp.value).forEach(h => { if (!state.handles.includes(h)) state.handles.push(h); });
+  inp.value = ''; renderTags();
+  document.getElementById('handleErr').classList.remove('show');
+}
+function removeHandle(i) { state.handles.splice(i, 1); renderTags(); }
+function hKey(e) { if (e.key === 'Enter') { e.preventDefault(); addHandles(); } }
+
+function goStep2() {
+  let ok = true;
+  if (!state.region) { document.getElementById('regionErr').classList.add('show'); ok = false; }
+  addHandles();
+  if (state.handles.length === 0) { document.getElementById('handleErr').classList.add('show'); ok = false; }
+  if (!ok) return;
+  goStep(2); renderChecklist();
+}
+
+function renderChecklist() {
+  const cfg = CHECKS[state.region];
+  document.getElementById('clH1').textContent = cfg.h1;
+  const container = document.getElementById('clItems');
+  container.innerHTML = '';
+  state.answers = {};
+  cfg.groups.forEach((g, gi) => {
+    const h3 = document.createElement('div');
+    h3.className = 'g-title'; h3.textContent = g.title;
+    container.appendChild(h3);
+    g.items.forEach((item, ii) => {
+      const row = document.createElement('div');
+      row.className = 'check-item';
+      row.id = 'item_' + gi + '_' + ii;
+      let handleRows = '';
+      state.handles.forEach(h => {
+        const k = akey(gi, ii, h);
+        state.answers[k] = null;
+        const safe = k.replace(/[^a-zA-Z0-9]/g, '_');
+        const url = BASE + h + '/' + item.sub;
+        handleRows += `<div class="handle-check-row">
+            <span class="handle-name">${h}</span>
+            <a class="handle-link" href="${url}" target="_blank">↗ 開後台</a>
+            <span class="handle-spacer"></span>
+            <div class="choice-row">
+              <button class="choice-btn" id="no_${safe}" onclick="setAns('${gi}','${ii}','${h}','no')">沒有使用</button>
+              <button class="choice-btn" id="yes_${safe}" onclick="setAns('${gi}','${ii}','${h}','yes')">有使用</button>
+            </div></div>`;
+      });
+      row.innerHTML = `<div class="check-q">${item.q}</div>
+        ${handleRows}
+        <div class="item-err" id="err_${gi}_${ii}">此題每個 Handle 都必須選擇</div>`;
+      container.appendChild(row);
+    });
+  });
+}
+
+function setAns(gi, ii, h, val) {
+  const k = akey(gi, ii, h);
+  state.answers[k] = val;
+  const safe = k.replace(/[^a-zA-Z0-9]/g, '_');
+  document.getElementById('no_' + safe).className = 'choice-btn' + (val === 'no' ? ' sel-no' : '');
+  document.getElementById('yes_' + safe).className = 'choice-btn' + (val === 'yes' ? ' sel-yes' : '');
+  document.getElementById('err_' + gi + '_' + ii).classList.remove('show');
+}
+
+function goStep3() {
+  const cfg = CHECKS[state.region];
+  let firstErr = null;
+  cfg.groups.forEach((g, gi) => {
+    g.items.forEach((item, ii) => {
+      let missing = false;
+      state.handles.forEach(h => { if (state.answers[akey(gi, ii, h)] === null) missing = true; });
+      const errEl = document.getElementById('err_' + gi + '_' + ii);
+      if (missing) { errEl.classList.add('show'); if (!firstErr) firstErr = document.getElementById('item_' + gi + '_' + ii); }
+      else errEl.classList.remove('show');
+    });
+  });
+  if (firstErr) { firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  buildSummary();
+  goStep(3);
+}
+
+// per handle: collect yes items by type
+function computeResult() {
+  const cfg = CHECKS[state.region];
+  const perHandle = {};
+  state.handles.forEach(h => { perHandle[h] = { block: [], dev: [], note: [] }; });
+  cfg.groups.forEach((g, gi) => {
+    g.items.forEach((item, ii) => {
+      state.handles.forEach(h => {
+        if (state.answers[akey(gi, ii, h)] === 'yes') perHandle[h][item.type].push(item.label);
+      });
+    });
+  });
+  // a handle is blocked if it has any 'block' or 'dev' yes
+  const passed = state.handles.filter(h => perHandle[h].block.length === 0 && perHandle[h].dev.length === 0);
+  return { perHandle, passed };
+}
+
+function buildSummary() {
+  const cfg = CHECKS[state.region];
+  document.getElementById('sumContent').innerHTML = `
+    <div class="summary-row"><span class="s-lbl">店家</span><span class="s-val">${cfg.h1}</span></div>
+    <div class="summary-row"><span class="s-lbl">Handle</span><span class="s-val">${state.handles.join(', ')}</span></div>`;
+  let html = '';
+  state.handles.forEach(h => {
+    html += `<div style="font-weight:700;font-size:13px;margin:12px 0 5px;color:var(--navy);border-bottom:2px solid var(--gray-line);padding-bottom:4px">🏪 ${h}</div>`;
+    cfg.groups.forEach((g, gi) => {
+      g.items.forEach((item, ii) => {
+        const ans = state.answers[akey(gi, ii, h)];
+        const color = ans === 'no' ? 'var(--green)' : 'var(--red)';
+        const bg = ans === 'no' ? 'var(--green-bg)' : 'var(--red-bg)';
+        const label = ans === 'no' ? '沒有使用' : '有使用';
+        html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--gray-line);gap:12px">
+          <span style="font-size:13px;color:var(--navy);flex:1;line-height:1.5">${item.label}</span>
+          <span style="font-size:12px;font-weight:700;color:${color};background:${bg};border-radius:20px;padding:3px 11px;white-space:nowrap;flex-shrink:0">${label}</span></div>`;
+      });
+    });
+  });
+  document.getElementById('sumRecord').innerHTML = html;
+}
+
+function submitForm() {
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = '送出中…';
+  setTimeout(() => { renderResult(); goStep(4); }, 700);
+}
+
+function renderResult() {
+  const { perHandle, passed } = computeResult();
+  const stepsHtml = state.region === 'TWD' ? STEPS_TWD : STEPS_HKD;
+
+  const blockHandles = state.handles.filter(h => perHandle[h].block.length > 0);
+  const devHandles = state.handles.filter(h => perHandle[h].dev.length > 0);
+  const noteHandles = state.handles.filter(h => perHandle[h].note.length > 0);
+
+  // 純X擋
+  let bHtml = '';
+  if (blockHandles.length > 0) {
+    bHtml = `<div class="blocked-box"><h3>⛔ 以下 Handle 無法開通（功能不支援）</h3>`;
+    blockHandles.forEach(h => {
+      bHtml += `<div class="result-handle"><div class="result-handle-name">🏪 ${h}</div>
+        <div class="result-reasons" style="color:var(--red)">因為有開啟：${perHandle[h].block.join('、')}，此功能不支援新版購物車頁/結帳頁，無法開通。</div></div>`;
+    });
+    bHtml += `<div style="font-size:12px;color:var(--red);margin-top:10px">如有疑問請到 <strong>#biz-checkout-revamp</strong> 確認功能限制。</div></div>`;
+  }
+  document.getElementById('blockedSection').innerHTML = bHtml;
+
+  // 開發中擋
+  let dHtml = '';
+  if (devHandles.length > 0) {
+    dHtml = `<div class="dev-box"><h3>🕒 以下 Handle 暫時無法開通（功能開發中）</h3>`;
+    devHandles.forEach(h => {
+      dHtml += `<div class="result-handle" style="border-bottom-color:var(--amber-border)"><div class="result-handle-name">🏪 ${h}</div>
+        <div class="result-reasons" style="color:var(--amber-text)">因為有開啟：${perHandle[h].dev.join('、')}。此功能預計 <strong>7/2 上線</strong>，目前不可開通，<strong>請於 7/3 再幫店家申請</strong>。</div></div>`;
+    });
+    dHtml += `</div>`;
+  }
+  document.getElementById('devSection').innerHTML = dHtml;
+
+  document.getElementById('noteSection').innerHTML = '';
+
+  // 通過（含 Layout Engine 提醒，同一 Handle 只出現一次）
+  let pHtml = '';
+  if (passed.length > 0) {
+    let rows = passed.map(h => {
+      const hasNote = perHandle[h].note.length > 0;
+      const noteLine = hasNote
+        ? `<div style="font-size:12px;color:var(--blue);margin-top:5px;line-height:1.6;background:var(--blue-soft);border:1px solid var(--blue-border);border-radius:7px;padding:7px 11px">📝 此店家有使用 Layout Engine，請店家自行檢查 <strong>/cart、/checkout</strong> 分頁是否有額外寫語法上去即可。</div>`
+        : '';
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--gray-line)">
+        <span class="pass-tag" style="margin:0">${h}</span>${noteLine}</div>`;
+    }).join('');
+    pHtml = `<div class="card"><div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:10px">✅ 以下 Handle 通過檢查，可進行開通：</div>
+      <div>${rows}</div></div>` + stepsHtml;
+  } else {
+    pHtml = `<div class="card" style="text-align:center;color:var(--gray-text);font-size:14px;padding:1.5rem">目前沒有可開通的 Handle，請依上述說明處理後再重新檢查。</div>`;
+  }
+  document.getElementById('passSection').innerHTML = pHtml;
+}
+
+function goStep(n) {
+  ['p1','p2','p3','p4'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('p' + n).style.display = 'block';
+  if (n <= 3) renderSteps(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function resetAll() {
+  state = { email: '', region: '', handles: [], answers: {} };
+  document.getElementById('handleInput').value = '';
+  document.getElementById('tagsWrap').innerHTML = '';
+  document.getElementById('btnTWD').classList.remove('sel');
+  document.getElementById('btnHKD').classList.remove('sel');
+  const btn = document.getElementById('btnSubmit'); btn.disabled = false; btn.textContent = '✓ 確認送出';
+  goStep(1);
+}
+renderSteps(1);
+</script>
+</body>
+</html>
