@@ -126,7 +126,7 @@ body { font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSyst
     </div>
     <div class="topbar-text">
       <span class="logo-wordmark">SHOPLINE</span>
-      <div class="logo-sub">新版購物車 P1 / 新版結帳頁 P2 開通檢查小工具　·　更新日期 2026/06/17</div>
+      <div class="logo-sub">新版購物車 P1 / 新版結帳頁 P2 開通檢查小工具　·　更新日期 2026/07/01</div>
     </div>
   </div>
   <div class="container">
@@ -236,30 +236,34 @@ const STEPS_HKD = `<div class="step-box"><h3>🇭🇰 HKD 開通步驟</h3><ol c
 const CHECKS = {
   TWD: { h1: '🇹🇼 TWD 商店檢查清單', groups: [
     { title: 'EC 後台檢查', items: [
-      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note' },
+      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note', devDate: null },
     ]},
     { title: '金流限制', items: [
-      { label: '藍新的 LINE Pay', q: '「藍新的 LINE Pay」是否有使用？', sub: 'payments', type: 'block' },
-      { label: '藍新的 Apple Pay', q: '「藍新的 Apple Pay」是否有使用？', sub: 'payments', type: 'block' },
-      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev' },
-      { label: 'Tappay-中信/NCCC', q: '「Tappay-中信/NCCC」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: '藍新（NewebPay）LINE Pay', q: '「藍新（NewebPay）LINE Pay」是否有使用？', sub: 'payments', type: 'block', devDate: null },
+      { label: '藍新（NewebPay）Apple Pay', q: '「藍新（NewebPay）Apple Pay」是否有使用？', sub: 'payments', type: 'block', devDate: null },
+      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/9' },
+      { label: 'Tappay - 永豐收單', q: '「Tappay - 永豐收單」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
+      { label: 'Tappay - 台新收單', q: '「Tappay - 台新收單」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
+      { label: 'Tappay - 中信/NCCC 收單', q: '「Tappay - 中信/NCCC 收單」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
     ]},
     { title: '物流限制', items: [
-      { label: '7-11 跨境', q: '「7-11 跨境」是否有使用？', sub: 'delivery_options', type: 'dev' },
+      { label: '7-11 跨境宅配', q: '「7-11 跨境宅配」是否有使用？', sub: 'delivery_options', type: 'dev', devDate: '7/2' },
+      { label: '7-11 跨境門市自取', q: '「7-11 跨境門市自取」是否有使用？', sub: 'delivery_options', type: 'dev', devDate: '7/2' },
     ]},
   ]},
   HKD: { h1: '🇭🇰 HKD 商店檢查清單', groups: [
     { title: 'EC 後台檢查', items: [
-      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note' },
+      { label: 'Layout Engine 前台設計工具', q: '「Layout Engine 前台設計工具」是否有使用？', sub: 'themes/layouts', type: 'note', devDate: null },
     ]},
     { title: '金流限制', items: [
-      { label: 'AsiaPay', q: '「AsiaPay」是否有使用？', sub: 'payments', type: 'dev' },
-      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev' },
-      { label: 'Alipay (China)', q: '「Alipay (China)」是否有使用？', sub: 'payments', type: 'dev' },
-      { label: 'Alipay (HK)', q: '「Alipay (HK)」是否有使用？', sub: 'payments', type: 'dev' },
+      { label: 'AsiaPay', q: '「AsiaPay」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
+      { label: 'PayPal Express', q: '「PayPal Express」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
+      { label: 'Stripe', q: '「Stripe」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/2' },
+      { label: 'Alipay (China)', q: '「Alipay (China)」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/9' },
+      { label: 'Alipay (HK)', q: '「Alipay (HK)」是否有使用？', sub: 'payments', type: 'dev', devDate: '7/9' },
     ]},
     { title: '物流限制', items: [
-      { label: '順豐速運（串接）', q: '「順豐速運（串接）」是否有使用？', sub: 'delivery_options', type: 'dev' },
+      { label: '順豐速運（速遞 - 串接）', q: '「順豐速運（速遞 - 串接）」是否有使用？', sub: 'delivery_options', type: 'dev', devDate: '7/2' },
     ]},
   ]},
 };
@@ -385,7 +389,9 @@ function computeResult() {
   cfg.groups.forEach((g, gi) => {
     g.items.forEach((item, ii) => {
       state.handles.forEach(h => {
-        if (state.answers[akey(gi, ii, h)] === 'yes') perHandle[h][item.type].push(item.label);
+        if (state.answers[akey(gi, ii, h)] === 'yes') {
+          perHandle[h][item.type].push({ label: item.label, devDate: item.devDate });
+        }
       });
     });
   });
@@ -437,7 +443,7 @@ function renderResult() {
     bHtml = `<div class="blocked-box"><h3>⛔ 以下 Handle 無法開通（功能不支援）</h3>`;
     blockHandles.forEach(h => {
       bHtml += `<div class="result-handle"><div class="result-handle-name">🏪 ${h}</div>
-        <div class="result-reasons" style="color:var(--red)">因為有開啟：${perHandle[h].block.join('、')}，此功能不支援新版購物車頁/結帳頁，無法開通。</div></div>`;
+        <div class="result-reasons" style="color:var(--red)">因為有開啟：${perHandle[h].block.map(d=>d.label).join('、')}，此功能不支援新版購物車頁/結帳頁，無法開通。</div></div>`;
     });
     bHtml += `<div style="font-size:12px;color:var(--red);margin-top:10px">如有疑問請到 <strong>#biz-checkout-revamp</strong> 確認功能限制。</div></div>`;
   }
@@ -448,8 +454,17 @@ function renderResult() {
   if (devHandles.length > 0) {
     dHtml = `<div class="dev-box"><h3>🕒 以下 Handle 暫時無法開通（功能開發中）</h3>`;
     devHandles.forEach(h => {
+      // group dev items by devDate
+      const byDate = {};
+      perHandle[h].dev.forEach(d => {
+        if (!byDate[d.devDate]) byDate[d.devDate] = [];
+        byDate[d.devDate].push(d.label);
+      });
+      const dateLines = Object.entries(byDate).map(([date, labels]) =>
+        `因為有開啟：${labels.join('、')}。此功能預計 <strong>${date} 上線</strong>，目前不可開通，<strong>請於上線後再幫店家申請</strong>。`
+      ).join('<br>');
       dHtml += `<div class="result-handle" style="border-bottom-color:var(--amber-border)"><div class="result-handle-name">🏪 ${h}</div>
-        <div class="result-reasons" style="color:var(--amber-text)">因為有開啟：${perHandle[h].dev.join('、')}。此功能預計 <strong>7/2 上線</strong>，目前不可開通，<strong>請於 7/3 再幫店家申請</strong>。</div></div>`;
+        <div class="result-reasons" style="color:var(--amber-text)">${dateLines}</div></div>`;
     });
     dHtml += `</div>`;
   }
